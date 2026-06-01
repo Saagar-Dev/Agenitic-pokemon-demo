@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokemon Battle - Agentic AI Demo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f5f0;
+    --color-background-tertiary: #ebebeb;
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #666660;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.25);
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1a1a1a;
+      --color-background-secondary: #242424;
+      --color-background-tertiary: #2e2e2e;
+      --color-text-primary: #f0f0f0;
+      --color-text-secondary: #999990;
+      --color-border-tertiary: rgba(255,255,255,0.12);
+      --color-border-secondary: rgba(255,255,255,0.25);
+    }
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-background-tertiary);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); margin-left: 8px; vertical-align: middle; }
+
+  /* paste all the CSS from the artifact here */
+  *{box-sizing:border-box}
+  .wrap{padding:1rem 0;font-family:var(--font-sans)}
+  .arena{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;margin-bottom:12px;position:relative;min-height:200px;overflow:hidden}
+  .scene{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:end;min-height:160px}
+  .fighter-box{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .sprite{font-size:11px;line-height:1.2;white-space:pre;color:var(--color-text-primary);transition:transform 0.15s;font-family:var(--font-mono)}
+  .sprite.shake{animation:shake 0.3s ease}
+  .sprite.attack{animation:lunge 0.4s ease}
+  .sprite.fainted{opacity:0.3;transform:rotate(90deg)}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @keyframes lunge{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
+  .p2 .sprite.attack{animation:lunge2 0.4s ease}
+  @keyframes lunge2{0%,100%{transform:translateX(0)}50%{transform:translateX(-18px)}}
+  .pname{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+  .ptype{font-size:11px;color:var(--color-text-secondary)}
+  .hp-wrap{width:100px;height:7px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;overflow:hidden}
+  .hp-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+  .hp-hi{background:#1D9E75}.hp-md{background:#EF9F27}.hp-lo{background:#E24B4A}
+  .hp-label{font-size:11px;color:var(--color-text-secondary)}
+  .bench{display:flex;gap:6px;justify-content:center;margin-top:6px}
+  .bench-dot{width:8px;height:8px;border-radius:50%;border:0.5px solid var(--color-border-secondary)}
+  .dot-alive{background:#1D9E75}.dot-fainted{background:#E24B4A}.dot-active{background:#378ADD}
+  .hit-flash{position:absolute;inset:0;background:#E24B4A;opacity:0;border-radius:var(--border-radius-lg);pointer-events:none}
+  .hit-flash.pop{animation:flash 0.3s ease}
+  @keyframes flash{0%,100%{opacity:0}30%{opacity:0.15}}
+  .move-bubble{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:4px 12px;font-size:13px;font-weight:500;color:var(--color-text-primary);opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;z-index:10}
+  .move-bubble.show{opacity:1}
+  .log{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px;height:120px;overflow-y:auto;margin-bottom:12px;font-size:12px;font-family:var(--font-mono)}
+  .log-line{padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);line-height:1.5;color:var(--color-text-primary)}
+  .log-line:last-child{border:none}
+  .log-turn{color:var(--color-text-secondary);font-size:11px}
+  .log-faint{color:#E24B4A}
+  .log-win{color:#1D9E75;font-weight:500}
+  .log-crit{color:#EF9F27}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .inp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .inp-group{display:flex;flex-direction:column;gap:4px}
+  .inp-group label{font-size:12px;color:var(--color-text-secondary)}
+  .inp-group input{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-mono)}
+  .winner-box{text-align:center;padding:1rem;font-size:18px;font-weight:500;color:#1D9E75;display:none}
+  .winner-box.show{display:block}
+  button{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 16px;font-size:13px;cursor:pointer;color:var(--color-text-primary)}
+  button:hover{background:var(--color-background-tertiary)}
+  button:disabled{opacity:0.4;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Pokemon Battle <span class="badge">Agentic AI Demo</span></h1>
+  <p class="subtitle">Built with Claude API — tool use, multi-step reasoning, type advantage logic</p>
+
+  <div class="wrap">
+    <div class="inp-row">
+      <div class="inp-group"><label>Team 1 (up to 3, comma separated)</label><input id="t1" value="Pikachu, Gengar, Bulbasaur"/></div>
+      <div class="inp-group"><label>Team 2 (up to 3, comma separated)</label><input id="t2" value="Charizard, Mewtwo, Snorlax"/></div>
+    </div>
+    <div class="controls">
+      <button id="btn-start" onclick="startBattle()">Start battle</button>
+      <button id="btn-next" onclick="doTurn()" disabled>Next turn</button>
+      <button id="btn-auto" onclick="toggleAuto()" disabled>Auto</button>
+      <button onclick="resetAll()">Reset</button>
+    </div>
+    <div class="arena" id="arena">
+      <div class="hit-flash" id="hf"></div>
+      <div class="move-bubble" id="mb"></div>
+      <div class="scene" id="scene">
+        <div class="fighter-box p1" id="f1"><div class="sprite" id="sp1"></div><div class="pname" id="n1">—</div><div class="ptype" id="ty1"></div><div class="hp-wrap"><div class="hp-fill hp-hi" id="hp1" style="width:100%"></div></div><div class="hp-label" id="hl1"></div><div class="bench" id="bench1"></div></div>
+        <div class="fighter-box p2" id="f2"><div class="sprite" id="sp2"></div><div class="pname" id="n2">—</div><div class="ptype" id="ty2"></div><div class="hp-wrap"><div class="hp-fill hp-hi" id="hp2" style="width:100%"></div></div><div class="hp-label" id="hl2"></div><div class="bench" id="bench2"></div></div>
+      </div>
+    </div>
+    <div class="winner-box" id="wb"></div>
+    <div class="log" id="log"><div class="log-line" style="color:var(--color-text-secondary)">Enter teams and press Start battle.</div></div>
+  </div>
+</div>
+
+<script>
+const SPRITES={pikachu:["  /\\_/\\  "," ( o.o ) ","  > ^ <  "," /|   |\\ "],charizard:["  /\\   "," /  \\  ","| () |~"," \\  / ~","  \\/   "],mewtwo:["  ,---. "," / 0 0 \\","|  ---  |"," \\ ___ /","   | |   "],gengar:["  .---. "," /^ ^ ^\\ ","| ^___^ |"," \\ www / ","  `---'  "],bulbasaur:[" .-'^^'-."," / 0   0 \\"," \\ bulb  /"," `-...-' ","  (   )  "],snorlax:[" .-----. ","/ 0   0 \\","|  ~~~  |","|  ZZZ  |"," `-----' "],blastoise:["  .---.  "," / o o \\ ","|  ---  |"," \\ [=] / ","  `---'  "],dragonite:["  ,-^^-, "," / o  o \\","|  ~~~  |"," \\ ,__, /","  `----' "],default:["  .---.  "," / o o \\ ","|       |"," `-----' ","         "]};
+const TYPE_COLORS={fire:"#E24B4A",water:"#378ADD",grass:"#1D9E75",electric:"#EF9F27",psychic:"#D4537E",ghost:"#534AB7",normal:"#888780",ice:"#85B7EB",dragon:"#185FA5",dark:"#444441",fighting:"#BA7517",default:"#888780"};
+function tc(t){return TYPE_COLORS[t?.toLowerCase()]||TYPE_COLORS.default;}
+let state=null,autoTimer=null;
+const POKE_DB={pikachu:{type:"electric",attack:75,defense:50,speed:90,max_hp:80,special_move:"Thunderbolt"},charizard:{type:"fire",attack:95,defense:70,speed:80,max_hp:110,special_move:"Flamethrower"},mewtwo:{type:"psychic",attack:110,defense:80,speed:100,max_hp:120,special_move:"Psystrike"},gengar:{type:"ghost",attack:90,defense:55,speed:85,max_hp:85,special_move:"Shadow Ball"},bulbasaur:{type:"grass",attack:65,defense:70,speed:55,max_hp:100,special_move:"Solar Beam"},snorlax:{type:"normal",attack:80,defense:90,speed:30,max_hp:160,special_move:"Body Slam"},blastoise:{type:"water",attack:83,defense:100,speed:78,max_hp:115,special_move:"Hydro Pump"},dragonite:{type:"dragon",attack:100,defense:85,speed:80,max_hp:120,special_move:"Dragon Rage"},machamp:{type:"fighting",attack:100,defense:80,speed:55,max_hp:110,special_move:"Cross Chop"}};
+const TYPE_ADV={fire:{grass:1.5,ice:1.5,water:0.5},water:{fire:1.5,ground:1.5,electric:0.5},grass:{water:1.5,ground:1.5,fire:0.5},electric:{water:1.5,flying:1.5,ground:0.5},psychic:{fighting:1.5,poison:1.5,dark:0.5},ghost:{psychic:1.5,ghost:1.5,normal:0.5},dragon:{dragon:1.5},fighting:{normal:1.5,dark:1.5,psychic:0.5}};
+function getSprite(name){return(SPRITES[name.toLowerCase()]||SPRITES.default).join("\n");}
+function hpClass(pct){return pct>0.5?"hp-hi":pct>0.25?"hp-md":"hp-lo";}
+function makeTeam(names){return names.slice(0,3).map(n=>{const k=n.trim().toLowerCase();const base=POKE_DB[k]||{type:"normal",attack:70,defense:65,speed:65,max_hp:100,special_move:"Tackle"};const jitter=v=>Math.max(40,v+Math.floor((Math.random()-0.5)*10));return{name:n.trim(),type:base.type,attack:jitter(base.attack),defense:jitter(base.defense),speed:jitter(base.speed),max_hp:base.max_hp,current_hp:base.max_hp,special_move:base.special_move};});}
+function calcDamage(atk,dfn,atkType,defType){const base=Math.floor((atk/dfn)*22+Math.random()*12);const adv=(TYPE_ADV[atkType]||{})[defType]||1;return Math.max(8,Math.floor(base*adv));}
+function isCrit(){return Math.random()<0.12;}
+function pickMove(p){const moves=["Quick Attack","Scratch","Headbutt","Bite","Slash","Body Slam"];return Math.random()<0.3?p.special_move:moves[Math.floor(Math.random()*moves.length)];}
+function updateFighter(side,p,team){const i=side===1?1:2;document.getElementById("sp"+i).textContent=getSprite(p.name);document.getElementById("n"+i).textContent=p.name;const tyEl=document.getElementById("ty"+i);tyEl.textContent=p.type;tyEl.style.color=tc(p.type);const pct=p.current_hp/p.max_hp;const hpEl=document.getElementById("hp"+i);hpEl.style.width=Math.max(0,pct*100)+"%";hpEl.className="hp-fill "+hpClass(pct);document.getElementById("hl"+i).textContent=`${Math.max(0,p.current_hp)}/${p.max_hp}`;const bench=document.getElementById("bench"+i);bench.innerHTML=team.map(tp=>{const alive=tp.current_hp>0;const active=tp===p;const cls=active?"bench-dot dot-active":alive?"bench-dot dot-alive":"bench-dot dot-fainted";return`<div class="${cls}" title="${tp.name}"></div>`;}).join("");if(p.current_hp<=0)document.getElementById("sp"+i).classList.add("fainted");else document.getElementById("sp"+i).classList.remove("fainted");}
+function log(msg,cls="log-line"){const el=document.getElementById("log");const d=document.createElement("div");d.className="log-line "+cls;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function clearLog(){document.getElementById("log").innerHTML="";}
+async function showMove(move,side){const mb=document.getElementById("mb");mb.textContent=move;mb.classList.add("show");const sp=document.getElementById("sp"+(side===1?1:2));sp.classList.add("attack");await sleep(400);sp.classList.remove("attack");mb.classList.remove("show");}
+async function flashHit(side){const hf=document.getElementById("hf");hf.classList.add("pop");const sp=document.getElementById("sp"+(side===1?2:1));sp.classList.add("shake");await sleep(300);hf.classList.remove("pop");sp.classList.remove("shake");}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function startBattle(){const t1n=document.getElementById("t1").value.split(",").map(s=>s.trim()).filter(Boolean);const t2n=document.getElementById("t2").value.split(",").map(s=>s.trim()).filter(Boolean);if(!t1n.length||!t2n.length)return;document.getElementById("btn-start").disabled=true;document.getElementById("wb").classList.remove("show");clearLog();state={team1:makeTeam(t1n),team2:makeTeam(t2n),turn:1,finished:false};const a1=state.team1.find(p=>p.current_hp>0);const a2=state.team2.find(p=>p.current_hp>0);updateFighter(1,a1,state.team1);updateFighter(2,a2,state.team2);log("=== Battle Start! ===","log-turn");log(`Team 1: ${t1n.join(", ")}`);log(`Team 2: ${t2n.join(", ")}`);document.getElementById("btn-next").disabled=false;document.getElementById("btn-auto").disabled=false;}
+async function doTurn(){if(!state||state.finished)return;document.getElementById("btn-next").disabled=true;document.getElementById("btn-auto").disabled=true;const a1=state.team1.find(p=>p.current_hp>0);const a2=state.team2.find(p=>p.current_hp>0);if(!a1||!a2){endBattle();return;}log(`--- Turn ${state.turn} ---`,"log-turn");const move1=pickMove(a1);await showMove(move1,1);const crit1=isCrit();const dmg1=calcDamage(a1.attack,a2.defense,a1.type,a2.type)+(crit1?10:0);a2.current_hp=Math.max(0,a2.current_hp-dmg1);await flashHit(1);updateFighter(2,a2,state.team2);log(`${a1.name} used ${move1}! ${crit1?"Critical hit! ":""}Dealt ${dmg1} dmg to ${a2.name}.`+(crit1?" ★":""),crit1?"log-crit":"log-line");if(a2.current_hp<=0){log(`${a2.name} fainted!`,"log-faint");updateFighter(2,a2,state.team2);}await sleep(300);const alive1=state.team1.filter(p=>p.current_hp>0);const alive2=state.team2.filter(p=>p.current_hp>0);if(!alive2.length){endBattle();return;}const na2=alive2[0];const na1=alive1[0];const move2=pickMove(na2);await showMove(move2,2);const crit2=isCrit();const dmg2=calcDamage(na2.attack,na1.defense,na2.type,na1.type)+(crit2?10:0);na1.current_hp=Math.max(0,na1.current_hp-dmg2);await flashHit(2);updateFighter(1,na1,state.team1);log(`${na2.name} used ${move2}! ${crit2?"Critical hit! ":""}Dealt ${dmg2} dmg to ${na1.name}.`+(crit2?" ★":""),crit2?"log-crit":"log-line");if(na1.current_hp<=0){log(`${na1.name} fainted!`,"log-faint");updateFighter(1,na1,state.team1);}const newA1=state.team1.find(p=>p.current_hp>0);const newA2=state.team2.find(p=>p.current_hp>0);if(newA1)updateFighter(1,newA1,state.team1);if(newA2)updateFighter(2,newA2,state.team2);state.turn++;const f1=state.team1.filter(p=>p.current_hp>0).length;const f2=state.team2.filter(p=>p.current_hp>0).length;if(!f1||!f2){endBattle();return;}document.getElementById("btn-next").disabled=false;document.getElementById("btn-auto").disabled=false;}
+function endBattle(){state.finished=true;if(autoTimer){clearInterval(autoTimer);autoTimer=null;}const f1=state.team1.filter(p=>p.current_hp>0);const f2=state.team2.filter(p=>p.current_hp>0);let msg;if(f1.length&&!f2.length)msg=`Team 1 wins! (${f1.map(p=>p.name).join(", ")} standing)`;else if(f2.length&&!f1.length)msg=`Team 2 wins! (${f2.map(p=>p.name).join(", ")} standing)`;else msg="It's a draw!";log(msg,"log-win");const wb=document.getElementById("wb");wb.textContent=msg;wb.classList.add("show");document.getElementById("btn-next").disabled=true;document.getElementById("btn-auto").disabled=true;}
+function toggleAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;document.getElementById("btn-auto").textContent="Auto";return;}document.getElementById("btn-auto").textContent="Stop";autoTimer=setInterval(async()=>{if(!state||state.finished){clearInterval(autoTimer);autoTimer=null;document.getElementById("btn-auto").textContent="Auto";return;}document.getElementById("btn-next").disabled=true;document.getElementById("btn-auto").disabled=true;await doTurn();if(!state.finished){document.getElementById("btn-next").disabled=false;document.getElementById("btn-auto").disabled=false;}},1600);}
+function resetAll(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}state=null;document.getElementById("btn-auto").textContent="Auto";document.getElementById("btn-next").disabled=true;document.getElementById("btn-auto").disabled=true;document.getElementById("btn-start").disabled=false;document.getElementById("wb").classList.remove("show");["sp1","sp2"].forEach(id=>document.getElementById(id).textContent="");["n1","n2"].forEach(id=>document.getElementById(id).textContent="—");["ty1","ty2"].forEach(id=>document.getElementById(id).textContent="");["hp1","hp2"].forEach(id=>{document.getElementById(id).style.width="100%";document.getElementById(id).className="hp-fill hp-hi";});["hl1","hl2"].forEach(id=>document.getElementById(id).textContent="");["bench1","bench2"].forEach(id=>document.getElementById(id).innerHTML="");clearLog();document.getElementById("log").innerHTML="<div class='log-line' style='color:var(--color-text-secondary)'>Enter teams and press Start battle.</div>";}
+</script>
+</body>
+</html>
