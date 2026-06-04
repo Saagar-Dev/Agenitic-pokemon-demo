@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saagar's Agentic AI Demo — Pokemon Battle</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f0f8;--muted:#7070a0;
+  --accent:#6366f1;--accent2:#a78bfa;
+  --green:#22c55e;--yellow:#eab308;--red:#ef4444;
+  --team1:#ef4444;--team2:#3b82f6;
+  --pixel:'Press Start 2P',monospace;--sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:1.5rem 1rem;overflow-x:hidden}
+.page{max-width:1300px;margin:0 auto}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:1.4rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border);animation:fadeDown 0.7s ease both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.header-title{font-family:var(--pixel);font-size:11px;color:var(--accent2);letter-spacing:0.05em;margin-bottom:6px;line-height:1.8}
+.header-sub{font-size:13px;color:var(--muted)}
+.header-sub span{color:var(--accent2);font-weight:500}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--accent2);margin-left:6px;vertical-align:middle}
+
+/* LAYOUT */
+.main-layout{display:grid;grid-template-columns:200px 1fr 300px;gap:14px;align-items:start}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== LEFT KPI ===== */
+.kpi-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;display:flex;flex-direction:column;gap:8px;animation:fadeUp 0.6s 0.1s ease both;position:sticky;top:1.5rem}
+.kpi-header{font-family:var(--pixel);font-size:7px;color:var(--muted);letter-spacing:0.05em;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.kpi-item{padding:7px 9px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.kpi-label{font-family:var(--pixel);font-size:6px;color:var(--muted);margin-bottom:3px;letter-spacing:0.03em}
+.kpi-value{font-family:var(--pixel);font-size:10px;color:var(--accent2);transition:color 0.3s}
+.kpi-value.red{color:var(--red)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.yellow{color:var(--yellow)}
+.kpi-bar-wrap{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-top:4px}
+.kpi-bar{height:100%;border-radius:2px;transition:width 0.5s ease,background 0.3s}
+.kpi-divider{height:1px;background:var(--border);margin:2px 0}
+.kpi-section-label{font-family:var(--pixel);font-size:6px;letter-spacing:0.04em;padding:2px 0}
+.kpi-mini{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.team1-label{color:var(--team1)}
+.team2-label{color:var(--team2)}
+
+/* SPEED CONTROL */
+.speed-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem;display:flex;flex-direction:column;gap:8px;animation:fadeUp 0.6s 0.15s ease both}
+.speed-header{font-family:var(--pixel);font-size:7px;color:var(--muted);letter-spacing:0.05em}
+.speed-btns{display:flex;gap:5px}
+.spd-btn{font-family:var(--pixel);font-size:6px;padding:5px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted);transition:all 0.15s;flex:1;text-align:center}
+.spd-btn.active{background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.5);color:var(--accent2)}
+.spd-btn:hover:not(.active){background:var(--surface2);color:var(--text)}
+
+/* ===== MIDDLE ===== */
+.mid-col{display:flex;flex-direction:column;gap:12px}
+
+/* TEAM BUILDER */
+.team-builder{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:fadeUp 0.6s 0.1s ease both}
+.team-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem}
+.team-panel.t1{border-top:2px solid var(--team1)}
+.team-panel.t2{border-top:2px solid var(--team2)}
+.team-label{font-family:var(--pixel);font-size:7px;margin-bottom:10px;letter-spacing:0.05em}
+.team-label.t1{color:var(--team1)}
+.team-label.t2{color:var(--team2)}
+.slot{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.slot-num{font-size:11px;color:var(--muted);width:14px}
+.slot select{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 7px;font-size:11px;color:var(--text);cursor:pointer;outline:none;transition:border-color 0.2s}
+.slot select:focus{border-color:var(--accent)}
+.slot-preview{width:28px;height:28px;image-rendering:pixelated;display:none;transition:transform 0.2s}
+.slot-preview:hover{transform:scale(1.3)}
+
+/* CONTROLS */
+.controls{display:flex;gap:8px;flex-wrap:wrap;animation:fadeUp 0.6s 0.2s ease both}
+.btn{font-family:var(--pixel);font-size:7px;padding:9px 14px;border-radius:8px;cursor:pointer;border:1px solid;letter-spacing:0.05em;transition:all 0.15s}
+.btn:active:not(:disabled){transform:scale(0.95)}
+.btn-primary{background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.5);color:var(--accent2)}
+.btn-primary:hover:not(:disabled){background:rgba(99,102,241,0.35);box-shadow:0 0 18px rgba(99,102,241,0.3)}
+.btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted)}
+.btn-secondary:hover:not(:disabled){background:var(--surface);color:var(--text)}
+.btn:disabled{opacity:0.3;cursor:not-allowed}
+
+/* ===== ARENA ===== */
+.arena{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;position:relative;overflow:hidden;min-height:370px;animation:fadeUp 0.6s 0.3s ease both}
+.arena-grid{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,0.01) 0,rgba(255,255,255,0.01) 1px,transparent 1px,transparent 52px),repeating-linear-gradient(0deg,rgba(255,255,255,0.01) 0,rgba(255,255,255,0.01) 1px,transparent 1px,transparent 52px);pointer-events:none;z-index:0}
+.arena-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(99,102,241,0.09) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* Flash — z-index 4, BELOW fighters (z-index 6) */
+.hit-flash{position:absolute;inset:0;background:#ef4444;opacity:0;pointer-events:none;z-index:3;border-radius:12px}
+@keyframes flashpop{0%,100%{opacity:0}30%{opacity:0.12}}
+
+.move-text{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%) scale(0.75);font-family:var(--pixel);font-size:9px;color:#fff;background:rgba(0,0,0,0.92);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px 14px;opacity:0;pointer-events:none;z-index:8;white-space:nowrap;transition:opacity 0.12s,transform 0.12s}
+.move-text.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+@keyframes screenShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-5px) rotate(-0.3deg)}35%{transform:translateX(5px) rotate(0.3deg)}55%{transform:translateX(-3px)}75%{transform:translateX(3px)}90%{transform:translateX(-1px)}}
+
+/* Pokeball overlay — z-index 20, shows/hides cleanly */
+.pokeball-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:60px;background:rgba(10,10,15,0.9);border-radius:12px;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.pokeball-overlay.show{opacity:1;pointer-events:all}
+.pb-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pokeball{width:64px;height:64px;position:relative}
+.pb-top-red{position:absolute;top:0;left:0;right:0;height:50%;background:var(--team1);border-radius:32px 32px 0 0;border:3px solid #1a1a1a;border-bottom:none}
+.pb-top-blue{position:absolute;top:0;left:0;right:0;height:50%;background:var(--team2);border-radius:32px 32px 0 0;border:3px solid #1a1a1a;border-bottom:none}
+.pb-bot{position:absolute;bottom:0;left:0;right:0;height:50%;background:#f0f0f8;border-radius:0 0 32px 32px;border:3px solid #1a1a1a;border-top:none}
+.pb-band{position:absolute;top:50%;left:0;right:0;height:3px;background:#1a1a1a;transform:translateY(-50%)}
+.pb-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#f0f0f8;border:3px solid #1a1a1a;z-index:1}
+.pb-label{font-family:var(--pixel);font-size:7px;color:var(--muted);text-align:center}
+@keyframes throwBall{0%{transform:scale(0) rotate(0deg);opacity:0}35%{transform:scale(1.2) rotate(180deg);opacity:1}65%{transform:scale(0.9) rotate(330deg)}82%{transform:scale(1.05) rotate(355deg)}100%{transform:scale(1) rotate(360deg);opacity:1}}
+@keyframes openBall{0%{transform:scale(1)}50%{transform:scale(1.3) rotate(15deg)}100%{transform:scale(0) rotate(30deg);opacity:0}}
+
+/* Idle placeholder — z-index 2, always behind fighters */
+.idle-placeholder{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.idle-placeholder.hidden{display:none}
+.idle-fighters{display:grid;grid-template-columns:1fr 1fr;width:100%;padding:0 3rem;align-items:center}
+.idle-slot{display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0.4}
+.idle-pb{width:52px;height:52px;position:relative;animation:idleFloat 3s ease-in-out infinite}
+.idle-pb.t1-delay{animation-delay:0.7s}
+@keyframes idleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.idle-label{font-family:var(--pixel);font-size:7px}
+.idle-label.t1{color:var(--team1)}
+.idle-label.t2{color:var(--team2)}
+
+/* FIGHTERS — z-index 6, always on top of flash/overlay once overlay hides */
+.fighters{display:grid;grid-template-columns:1fr 1fr;gap:1rem;position:relative;z-index:6;min-height:270px;align-items:end}
+.fighter{display:flex;flex-direction:column;align-items:center;gap:8px}
+.sprite-wrap{width:120px;height:120px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:12px}
+.sprite-wrap.t1{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15)}
+.sprite-wrap.t2{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15)}
+.sprite-img{image-rendering:pixelated;width:104px;height:104px}
+
+/* Sprite anims */
+@keyframes enterLeft{from{opacity:0;transform:translateX(-60px) scale(0.5)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes enterRight{from{opacity:0;transform:translateX(60px) scale(0.5)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes attackRight{0%,100%{transform:translateX(0)}45%{transform:translateX(36px) scaleX(1.08)}65%{transform:translateX(26px)}}
+@keyframes attackLeft{0%,100%{transform:translateX(0)}45%{transform:translateX(-36px) scaleX(1.08)}65%{transform:translateX(-26px)}}
+@keyframes shakeHit{0%,100%{transform:translateX(0)}15%{transform:translateX(-9px) rotate(-2deg)}35%{transform:translateX(9px) rotate(2deg)}55%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes faintDown{from{opacity:1;transform:translateY(0) rotate(0) scale(1)}to{opacity:0.1;transform:translateY(12px) rotate(85deg) scale(0.75)}}
+@keyframes idleBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* Damage floats + particles */
+.dmg-num{position:absolute;font-family:var(--pixel);pointer-events:none;z-index:30;white-space:nowrap}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1.3)}25%{opacity:1;transform:translateY(-16px) scale(1)}100%{opacity:0;transform:translateY(-42px) scale(0.8)}}
+.particle{position:absolute;border-radius:50%;pointer-events:none;z-index:25}
+@keyframes burst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+
+/* Fighter info */
+.fighter-name{font-family:var(--pixel);font-size:9px;color:var(--text)}
+.fighter-type{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.hp-track{width:120px;height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden}
+.hp-fill{height:100%;border-radius:4px;transition:width 0.55s cubic-bezier(0.4,0,0.2,1)}
+.hp-hi{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.hp-md{background:linear-gradient(90deg,#ca8a04,#eab308)}
+.hp-lo{background:linear-gradient(90deg,#b91c1c,#ef4444);animation:lowPulse 0.75s ease-in-out infinite}
+@keyframes lowPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.hp-num{font-family:var(--pixel);font-size:7px;color:var(--muted)}
+.bench-row{display:flex;gap:6px;margin-top:2px}
+.bdot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);transition:all 0.3s}
+.bdot-alive-t1{background:var(--team1);box-shadow:0 0 5px rgba(239,68,68,0.5)}
+.bdot-alive-t2{background:var(--team2);box-shadow:0 0 5px rgba(59,130,246,0.5)}
+.bdot-active-t1{background:var(--team1);animation:dotPulse1 1.1s ease-in-out infinite}
+.bdot-active-t2{background:var(--team2);animation:dotPulse2 1.1s ease-in-out infinite}
+@keyframes dotPulse1{0%,100%{box-shadow:0 0 6px rgba(239,68,68,0.7)}50%{box-shadow:0 0 16px rgba(239,68,68,1)}}
+@keyframes dotPulse2{0%,100%{box-shadow:0 0 6px rgba(59,130,246,0.7)}50%{box-shadow:0 0 16px rgba(59,130,246,1)}}
+.bdot-dead{background:#2a2a2a;border-color:#333}
+
+/* WINNER */
+.winner-bar{text-align:center;padding:1rem;font-family:var(--pixel);font-size:9px;color:var(--green);letter-spacing:0.08em;display:none;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);border-radius:12px}
+.winner-bar.show{display:block;animation:winPop 0.5s cubic-bezier(0.34,1.56,0.64,1) both}
+@keyframes winPop{from{opacity:0;transform:scale(0.82)}to{opacity:1;transform:scale(1)}}
+
+/* ===== RIGHT COLUMN ===== */
+.right-col{display:flex;flex-direction:column;gap:12px;animation:fadeUp 0.6s 0.4s ease both;position:sticky;top:1.5rem}
+.turn-badge{font-family:var(--pixel);font-size:7px;color:var(--muted);text-align:center;padding:8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.turn-badge span{color:var(--accent2)}
+.log-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column}
+.log-header{font-family:var(--pixel);font-size:7px;color:var(--muted);letter-spacing:0.05em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.log{height:520px;overflow-y:auto;display:flex;flex-direction:column}
+.log::-webkit-scrollbar{width:4px}
+.log::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.ll{padding:3px 0;border-bottom:1px solid var(--border);font-family:var(--pixel);font-size:7px;line-height:2.1;animation:slideIn 0.18s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.ll:last-child{border:none}
+.ll-turn{color:rgba(99,102,241,0.75)}
+.ll-faint{color:#f87171}
+.ll-win{color:var(--green)}
+.ll-crit{color:#fbbf24}
+.ll-super{color:#fb923c}
+.ll-normal{color:#b0b0d0}
+.ll-t1{color:rgba(239,68,68,0.85)}
+.ll-t2{color:rgba(59,130,246,0.85)}
+
+.footer{text-align:center;font-size:11px;color:var(--muted);padding-top:1.2rem;margin-top:.5rem;border-top:1px solid var(--border)}
+.footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="header-title">SAAGAR DEVADIGA<br>AGENTIC AI DEMO</div>
+  <div class="header-sub">Pokemon Battle Engine <span>— Claude API + tool use</span><span class="badge">Live Demo</span></div>
+</div>
+
+<div class="main-layout">
+
+<!-- ===== LEFT KPI ===== -->
+<div style="display:flex;flex-direction:column;gap:12px">
+  <div class="kpi-panel">
+    <div class="kpi-header">LIVE STATS</div>
+    <div class="kpi-item">
+      <div class="kpi-label">TURN</div>
+      <div class="kpi-value" id="kpi-turn">—</div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-section-label team1-label">TEAM 1</div>
+    <div class="kpi-item">
+      <div class="kpi-label">ACTIVE</div>
+      <div class="kpi-value" id="kpi-t1-active" style="font-size:8px">—</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">HP</div>
+      <div class="kpi-value" id="kpi-t1-hp">—</div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-t1-bar" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-item"><div class="kpi-label">ALIVE</div><div class="kpi-value green" id="kpi-t1-alive">—</div></div>
+      <div class="kpi-item"><div class="kpi-label">FAINTED</div><div class="kpi-value red" id="kpi-t1-fainted">—</div></div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-section-label team2-label">TEAM 2</div>
+    <div class="kpi-item">
+      <div class="kpi-label">ACTIVE</div>
+      <div class="kpi-value" id="kpi-t2-active" style="font-size:8px">—</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">HP</div>
+      <div class="kpi-value" id="kpi-t2-hp">—</div>
+      <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-t2-bar" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="kpi-mini">
+      <div class="kpi-item"><div class="kpi-label">ALIVE</div><div class="kpi-value green" id="kpi-t2-alive">—</div></div>
+      <div class="kpi-item"><div class="kpi-label">FAINTED</div><div class="kpi-value red" id="kpi-t2-fainted">—</div></div>
+    </div>
+    <div class="kpi-divider"></div>
+    <div class="kpi-item"><div class="kpi-label">CRITS</div><div class="kpi-value yellow" id="kpi-crits">0</div></div>
+    <div class="kpi-item"><div class="kpi-label">SUPER EFF</div><div class="kpi-value" style="color:#fb923c" id="kpi-super">0</div></div>
+    <div class="kpi-item"><div class="kpi-label">TOTAL DMG</div><div class="kpi-value" id="kpi-dmg">0</div></div>
+  </div>
+
+  <div class="speed-panel">
+    <div class="speed-header">SPEED</div>
+    <div class="speed-btns">
+      <div class="spd-btn" onclick="setSpeed(0.5,this)">0.5x</div>
+      <div class="spd-btn active" onclick="setSpeed(1,this)">1x</div>
+      <div class="spd-btn" onclick="setSpeed(2,this)">2x</div>
+      <div class="spd-btn" onclick="setSpeed(3,this)">3x</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MIDDLE ===== -->
+<div class="mid-col">
+
+  <div class="team-builder">
+    <div class="team-panel t1">
+      <div class="team-label t1">TEAM 1 — YOUR SQUAD</div>
+      <div class="slot"><span class="slot-num">1</span><select id="s1a" onchange="previewSlot('s1a','p1a')"><option value="">— pick —</option></select><img class="slot-preview" id="p1a"/></div>
+      <div class="slot"><span class="slot-num">2</span><select id="s1b" onchange="previewSlot('s1b','p1b')"><option value="">— pick —</option></select><img class="slot-preview" id="p1b"/></div>
+      <div class="slot"><span class="slot-num">3</span><select id="s1c" onchange="previewSlot('s1c','p1c')"><option value="">— pick —</option></select><img class="slot-preview" id="p1c"/></div>
+    </div>
+    <div class="team-panel t2">
+      <div class="team-label t2">TEAM 2 — OPPONENT</div>
+      <div class="slot"><span class="slot-num">1</span><select id="s2a" onchange="previewSlot('s2a','p2a')"><option value="">— pick —</option></select><img class="slot-preview" id="p2a"/></div>
+      <div class="slot"><span class="slot-num">2</span><select id="s2b" onchange="previewSlot('s2b','p2b')"><option value="">— pick —</option></select><img class="slot-preview" id="p2b"/></div>
+      <div class="slot"><span class="slot-num">3</span><select id="s2c" onchange="previewSlot('s2c','p2c')"><option value="">— pick —</option></select><img class="slot-preview" id="p2c"/></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="btn-start" onclick="startBattle()">START BATTLE</button>
+    <button class="btn btn-secondary" id="btn-next" onclick="doTurn()" disabled>NEXT TURN</button>
+    <button class="btn btn-secondary" id="btn-auto" onclick="toggleAuto()" disabled>AUTO</button>
+    <button class="btn btn-secondary" onclick="resetAll()">RESET</button>
+  </div>
+
+  <div class="arena" id="arena">
+    <div class="arena-grid"></div>
+    <div class="arena-glow"></div>
+    <div class="hit-flash" id="hf"></div>
+    <div class="move-text" id="mt"></div>
+
+    <!-- Idle placeholder z=2 -->
+    <div class="idle-placeholder" id="idle-ph">
+      <div class="idle-fighters">
+        <div class="idle-slot">
+          <div class="idle-pb pokeball">
+            <div class="pb-top-red"></div><div class="pb-bot"></div>
+            <div class="pb-band"></div><div class="pb-btn"></div>
+          </div>
+          <div class="idle-label t1">TEAM 1</div>
+        </div>
+        <div class="idle-slot">
+          <div class="idle-pb pokeball t1-delay">
+            <div class="pb-top-blue"></div><div class="pb-bot"></div>
+            <div class="pb-band"></div><div class="pb-btn"></div>
+          </div>
+          <div class="idle-label t2">TEAM 2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pokeball overlay z=20, hides fully -->
+    <div class="pokeball-overlay" id="pball-overlay">
+      <div class="pb-wrap">
+        <div class="pokeball" id="pb1">
+          <div class="pb-top-red"></div><div class="pb-bot"></div>
+          <div class="pb-band"></div><div class="pb-btn"></div>
+        </div>
+        <div class="pb-label" id="pb1-label"></div>
+      </div>
+      <div style="font-family:var(--pixel);font-size:16px;color:var(--accent2);align-self:center">VS</div>
+      <div class="pb-wrap">
+        <div class="pokeball" id="pb2">
+          <div class="pb-top-blue"></div><div class="pb-bot"></div>
+          <div class="pb-band"></div><div class="pb-btn"></div>
+        </div>
+        <div class="pb-label" id="pb2-label"></div>
+      </div>
+    </div>
+
+    <!-- Fighters z=6 — always visible once overlay gone -->
+    <div class="fighters">
+      <div class="fighter" id="f1">
+        <div class="sprite-wrap t1" id="sw1">
+          <img class="sprite-img" id="sp1" src="" alt=""
+            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22104%22 height=%22104%22%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2248%22 fill=%22%23ef4444%22/%3E%3Crect x=%224%22 y=%2248%22 width=%2296%22 height=%228%22 fill=%22%23111%22/%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2248%22 fill=%22none%22 stroke=%22%23111%22 stroke-width=%224%22/%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2212%22 fill=%22%23f0f0f8%22 stroke=%22%23111%22 stroke-width=%224%22/%3E%3C/svg%3E'"/>
+        </div>
+        <div class="fighter-name" id="fn1"></div>
+        <div class="fighter-type" id="ft1"></div>
+        <div class="hp-track"><div class="hp-fill hp-hi" id="hp1" style="width:100%"></div></div>
+        <div class="hp-num" id="hn1"></div>
+        <div class="bench-row" id="bd1"></div>
+      </div>
+      <div class="fighter" id="f2">
+        <div class="sprite-wrap t2" id="sw2">
+          <img class="sprite-img" id="sp2" src="" alt=""
+            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22104%22 height=%22104%22%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2248%22 fill=%22%233b82f6%22/%3E%3Crect x=%224%22 y=%2248%22 width=%2296%22 height=%228%22 fill=%22%23111%22/%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2248%22 fill=%22none%22 stroke=%22%23111%22 stroke-width=%224%22/%3E%3Ccircle cx=%2252%22 cy=%2252%22 r=%2212%22 fill=%22%23f0f0f8%22 stroke=%22%23111%22 stroke-width=%224%22/%3E%3C/svg%3E'"/>
+        </div>
+        <div class="fighter-name" id="fn2"></div>
+        <div class="fighter-type" id="ft2"></div>
+        <div class="hp-track"><div class="hp-fill hp-hi" id="hp2" style="width:100%"></div></div>
+        <div class="hp-num" id="hn2"></div>
+        <div class="bench-row" id="bd2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="winner-bar" id="wb"></div>
+</div>
+
+<!-- ===== RIGHT LOG ===== -->
+<div class="right-col">
+  <div class="turn-badge">TURN <span id="turn-counter">—</span></div>
+  <div class="log-panel">
+    <div class="log-header">BATTLE LOG</div>
+    <div class="log" id="log">
+      <div class="ll ll-normal">Select teams and press START BATTLE.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main-layout -->
+
+<div class="footer">Built by <a href="#">Saagar Devadiga</a> — Data Engineer &amp; AI Developer &nbsp;|&nbsp; Claude API + PokeAPI</div>
+</div>
+
+<script>
+const POKEMON=[
+  {id:1,name:"Bulbasaur",type:"grass",attack:65,defense:70,speed:55,hp:100,move:"Solar Beam"},
+  {id:3,name:"Venusaur",type:"grass",attack:82,defense:83,speed:80,hp:120,move:"Solar Beam"},
+  {id:4,name:"Charmander",type:"fire",attack:72,defense:50,speed:65,hp:85,move:"Flamethrower"},
+  {id:6,name:"Charizard",type:"fire",attack:109,defense:78,speed:100,hp:120,move:"Flamethrower"},
+  {id:7,name:"Squirtle",type:"water",attack:65,defense:80,speed:58,hp:95,move:"Hydro Pump"},
+  {id:9,name:"Blastoise",type:"water",attack:83,defense:100,speed:78,hp:115,move:"Hydro Pump"},
+  {id:25,name:"Pikachu",type:"electric",attack:75,defense:50,speed:90,hp:80,move:"Thunderbolt"},
+  {id:39,name:"Jigglypuff",type:"normal",attack:55,defense:40,speed:35,hp:140,move:"Hyper Voice"},
+  {id:45,name:"Vileplume",type:"grass",attack:80,defense:85,speed:50,hp:110,move:"Petal Dance"},
+  {id:52,name:"Meowth",type:"normal",attack:60,defense:45,speed:80,hp:80,move:"Pay Day"},
+  {id:54,name:"Psyduck",type:"water",attack:65,defense:55,speed:55,hp:90,move:"Confusion"},
+  {id:58,name:"Growlithe",type:"fire",attack:80,defense:50,speed:60,hp:90,move:"Flare Blitz"},
+  {id:59,name:"Arcanine",type:"fire",attack:110,defense:80,speed:95,hp:120,move:"Flare Blitz"},
+  {id:63,name:"Abra",type:"psychic",attack:50,defense:30,speed:90,hp:70,move:"Psybeam"},
+  {id:65,name:"Alakazam",type:"psychic",attack:50,defense:45,speed:120,hp:80,move:"Psychic"},
+  {id:66,name:"Machop",type:"fighting",attack:90,defense:60,speed:35,hp:100,move:"Cross Chop"},
+  {id:68,name:"Machamp",type:"fighting",attack:130,defense:80,speed:55,hp:120,move:"Cross Chop"},
+  {id:74,name:"Geodude",type:"rock",attack:80,defense:100,speed:20,hp:90,move:"Rock Blast"},
+  {id:78,name:"Rapidash",type:"fire",attack:100,defense:70,speed:105,hp:105,move:"Fire Blast"},
+  {id:92,name:"Gastly",type:"ghost",attack:85,defense:35,speed:80,hp:70,move:"Shadow Ball"},
+  {id:94,name:"Gengar",type:"ghost",attack:95,defense:55,speed:110,hp:85,move:"Shadow Ball"},
+  {id:113,name:"Chansey",type:"normal",attack:35,defense:30,speed:50,hp:200,move:"Softboiled"},
+  {id:123,name:"Scyther",type:"bug",attack:110,defense:80,speed:105,hp:95,move:"Slash"},
+  {id:129,name:"Magikarp",type:"water",attack:10,defense:55,speed:80,hp:40,move:"Splash"},
+  {id:130,name:"Gyarados",type:"water",attack:125,defense:79,speed:81,hp:130,move:"Hyper Beam"},
+  {id:131,name:"Lapras",type:"water",attack:85,defense:80,speed:60,hp:150,move:"Ice Beam"},
+  {id:133,name:"Eevee",type:"normal",attack:60,defense:55,speed:55,hp:90,move:"Quick Attack"},
+  {id:134,name:"Vaporeon",type:"water",attack:65,defense:60,speed:65,hp:170,move:"Hydro Pump"},
+  {id:135,name:"Jolteon",type:"electric",attack:65,defense:60,speed:130,hp:95,move:"Thunderbolt"},
+  {id:136,name:"Flareon",type:"fire",attack:130,defense:60,speed:65,hp:100,move:"Fire Blast"},
+  {id:142,name:"Aerodactyl",type:"rock",attack:105,defense:65,speed:130,hp:100,move:"Rock Slide"},
+  {id:143,name:"Snorlax",type:"normal",attack:110,defense:65,speed:30,hp:190,move:"Body Slam"},
+  {id:144,name:"Articuno",type:"ice",attack:85,defense:100,speed:85,hp:115,move:"Ice Beam"},
+  {id:145,name:"Zapdos",type:"electric",attack:116,defense:90,speed:100,hp:115,move:"Thunderbolt"},
+  {id:146,name:"Moltres",type:"fire",attack:100,defense:90,speed:90,hp:115,move:"Flamethrower"},
+  {id:147,name:"Dratini",type:"dragon",attack:64,defense:45,speed:50,hp:82,move:"Dragon Rage"},
+  {id:149,name:"Dragonite",type:"dragon",attack:134,defense:95,speed:80,hp:130,move:"Dragon Rage"},
+  {id:150,name:"Mewtwo",type:"psychic",attack:150,defense:90,speed:130,hp:130,move:"Psystrike"},
+  {id:151,name:"Mew",type:"psychic",attack:100,defense:100,speed:100,hp:120,move:"Transform"},
+];
+
+const TYPE_ADV={fire:{grass:1.5,ice:1.5,bug:1.5,water:0.5,rock:0.5},water:{fire:1.5,ground:1.5,rock:1.5,grass:0.5,dragon:0.5},grass:{water:1.5,ground:1.5,rock:1.5,fire:0.5,bug:0.5},electric:{water:1.5,flying:1.5,ground:0.5,dragon:0.5},psychic:{fighting:1.5,poison:1.5,dark:0.5},ghost:{psychic:1.5,ghost:1.5,normal:0.5},dragon:{dragon:1.5},fighting:{normal:1.5,rock:1.5,dark:1.5,psychic:0.5,flying:0.5},ice:{grass:1.5,ground:1.5,flying:1.5,dragon:1.5,fire:0.5,water:0.5}};
+const TYPE_COLORS={fire:'#ef4444',water:'#3b82f6',grass:'#22c55e',electric:'#eab308',psychic:'#ec4899',ghost:'#8b5cf6',normal:'#94a3b8',rock:'#a16207',bug:'#65a30d',fighting:'#dc2626',ice:'#06b6d4',dragon:'#7c3aed',ground:'#d97706'};
+
+let speedMult=1;
+let state=null,autoTimer=null;
+let stats={crits:0,supers:0,totalDmg:0};
+
+function setSpeed(mult,btn){
+  speedMult=mult;
+  document.querySelectorAll('.spd-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function s(ms){return new Promise(r=>setTimeout(r,ms/speedMult));}
+function spriteUrl(id){return`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;}
+function hpCls(pct){return pct>0.5?'hp-hi':pct>0.25?'hp-md':'hp-lo';}
+
+function populateSelects(){
+  const sorted=[...POKEMON].sort((a,b)=>a.name.localeCompare(b.name));
+  const opts=sorted.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  ['s1a','s1b','s1c','s2a','s2b','s2c'].forEach(id=>{
+    document.getElementById(id).innerHTML='<option value="">— pick —</option>'+opts;
+  });
+  const defs={s1a:'25',s1b:'94',s1c:'3',s2a:'6',s2b:'150',s2c:'143'};
+  Object.entries(defs).forEach(([id,val])=>{
+    document.getElementById(id).value=val;
+    previewSlot(id,'p'+id.substring(1));
+  });
+}
+
+function previewSlot(selId,prevId){
+  const val=document.getElementById(selId).value;
+  const img=document.getElementById(prevId);
+  if(val){img.src=spriteUrl(val);img.style.display='block';}
+  else img.style.display='none';
+}
+
+function getPoke(id){return POKEMON.find(p=>p.id==id);}
+function getTeam(pfx){
+  return['a','b','c'].map(l=>document.getElementById(pfx+l).value)
+    .filter(Boolean).map(id=>{const p=getPoke(id);return p?{...p,current_hp:p.hp,max_hp:p.hp}:null;}).filter(Boolean);
+}
+
+function updateKPIs(){
+  if(!state){
+    ['kpi-turn','kpi-t1-active','kpi-t1-hp','kpi-t1-alive','kpi-t1-fainted',
+     'kpi-t2-active','kpi-t2-hp','kpi-t2-alive','kpi-t2-fainted'].forEach(id=>document.getElementById(id).textContent='—');
+    ['kpi-t1-bar','kpi-t2-bar'].forEach(id=>document.getElementById(id).style.width='0%');
+    document.getElementById('kpi-crits').textContent='0';
+    document.getElementById('kpi-super').textContent='0';
+    document.getElementById('kpi-dmg').textContent='0';
+    document.getElementById('turn-counter').textContent='—';
+    return;
+  }
+  document.getElementById('kpi-turn').textContent=state.turn;
+  document.getElementById('turn-counter').textContent=state.turn;
+  const ut=(num,team)=>{
+    const active=team.find(p=>p.current_hp>0);
+    const alive=team.filter(p=>p.current_hp>0).length;
+    const fainted=team.filter(p=>p.current_hp<=0).length;
+    document.getElementById(`kpi-t${num}-active`).textContent=active?active.name:'—';
+    const pct=active?Math.round((active.current_hp/active.max_hp)*100):0;
+    document.getElementById(`kpi-t${num}-hp`).textContent=active?active.current_hp+'/'+active.max_hp:'0';
+    const bar=document.getElementById(`kpi-t${num}-bar`);
+    bar.style.width=pct+'%';
+    bar.style.background=pct>50?'var(--green)':pct>25?'var(--yellow)':'var(--red)';
+    document.getElementById(`kpi-t${num}-alive`).textContent=alive;
+    document.getElementById(`kpi-t${num}-fainted`).textContent=fainted;
+  };
+  ut(1,state.team1);ut(2,state.team2);
+  document.getElementById('kpi-crits').textContent=stats.crits;
+  document.getElementById('kpi-super').textContent=stats.supers;
+  document.getElementById('kpi-dmg').textContent=stats.totalDmg;
+}
+
+async function showPokeballIntro(t1,t2){
+  const overlay=document.getElementById('pball-overlay');
+  const pb1=document.getElementById('pb1'),pb2=document.getElementById('pb2');
+  document.getElementById('pb1-label').textContent=t1[0].name.toUpperCase();
+  document.getElementById('pb2-label').textContent=t2[0].name.toUpperCase();
+  pb1.style.cssText='';pb2.style.cssText='';
+  overlay.classList.add('show');
+  await s(80);
+  pb1.style.animation='throwBall 0.6s cubic-bezier(0.34,1.56,0.64,1) both';
+  await s(160);
+  pb2.style.animation='throwBall 0.6s cubic-bezier(0.34,1.56,0.64,1) both';
+  await s(1100/speedMult);
+  pb1.style.animation='openBall 0.4s ease forwards';
+  await s(120);
+  pb2.style.animation='openBall 0.4s ease forwards';
+  await s(520);
+  overlay.classList.remove('show');
+  await s(280);
+}
+
+async function showWinBalls(winSide){
+  const overlay=document.getElementById('pball-overlay');
+  const pb1=document.getElementById('pb1'),pb2=document.getElementById('pb2');
+  const loser=winSide===1?pb2:pb1,winner=winSide===1?pb1:pb2;
+  document.getElementById('pb1-label').textContent=winSide===1?'WINNER!':'FAINTED';
+  document.getElementById('pb2-label').textContent=winSide===2?'WINNER!':'FAINTED';
+  pb1.style.cssText='';pb2.style.cssText='';
+  overlay.classList.add('show');
+  await s(80);
+  winner.style.animation='throwBall 0.5s cubic-bezier(0.34,1.56,0.64,1) both';
+  loser.style.opacity='0.2';
+  await s(1400);
+  overlay.classList.remove('show');
+  await s(280);
+}
+
+function spawnParticles(side,color,count){
+  const arena=document.getElementById('arena');
+  const sw=document.getElementById('sw'+side);
+  const r=sw.getBoundingClientRect(),ar=arena.getBoundingClientRect();
+  const cx=r.left-ar.left+r.width/2,cy=r.top-ar.top+r.height/2;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='particle';
+    const sz=Math.random()*8+3,ang=Math.random()*Math.PI*2,dist=Math.random()*55+20;
+    const tx=Math.cos(ang)*dist,ty=Math.sin(ang)*dist-18,dur=((Math.random()*0.35+0.38)/speedMult).toFixed(2);
+    el.style.cssText=`width:${sz}px;height:${sz}px;background:${color};left:${cx}px;top:${cy}px;--tx:${tx}px;--ty:${ty}px;animation:burst ${dur}s ease forwards`;
+    arena.appendChild(el);
+    setTimeout(()=>el.remove(),850/speedMult);
+  }
+}
+
+function spawnDmg(side,dmg,isCrit,isSuper){
+  const arena=document.getElementById('arena');
+  const sw=document.getElementById('sw'+side);
+  const r=sw.getBoundingClientRect(),ar=arena.getBoundingClientRect();
+  const cx=r.left-ar.left+r.width/2+(Math.random()*24-12),cy=r.top-ar.top+4;
+  const el=document.createElement('div');
+  el.className='dmg-num';
+  const dur=(0.95/speedMult).toFixed(2);
+  el.style.cssText=`left:${cx}px;top:${cy}px;font-size:${isCrit?13:11}px;color:${isCrit?'#fbbf24':isSuper?'#fb923c':'#fff'};animation:floatUp ${dur}s ease forwards`;
+  el.textContent=(isCrit?'* ':isSuper?'! ':'')+dmg;
+  arena.appendChild(el);
+  setTimeout(()=>el.remove(),1000/speedMult);
+}
+
+function setSprite(side,p,anim){
+  const sp=document.getElementById('sp'+side);
+  const url=spriteUrl(p.id);
+  sp.setAttribute('data-pid',p.id);
+  sp.style.animation='none';
+  void sp.offsetWidth;
+  // set src fresh each time to avoid cached broken state
+  sp.src=url;
+  if(p.current_hp<=0){
+    const dur=(0.55/speedMult).toFixed(2);
+    sp.style.animation=`faintDown ${dur}s ease forwards`;
+  } else if(anim==='enter'){
+    const dur=(0.52/speedMult).toFixed(2);
+    const kf=side===1?'enterLeft':'enterRight';
+    sp.style.animation=`${kf} ${dur}s cubic-bezier(0.34,1.56,0.64,1) both`;
+    const delay=540/speedMult;
+    setTimeout(()=>{if(p.current_hp>0)sp.style.animation='idleBob 2.4s ease-in-out infinite';},delay);
+  } else {
+    sp.style.animation='idleBob 2.4s ease-in-out infinite';
+  }
+}
+
+function updateFighter(side,p,team,enter){
+  setSprite(side,p,enter?'enter':'idle');
+  document.getElementById('fn'+side).textContent=p.name.toUpperCase();
+  const ft=document.getElementById('ft'+side);
+  ft.textContent=p.type;ft.style.color=TYPE_COLORS[p.type]||'#94a3b8';ft.style.borderColor=(TYPE_COLORS[p.type]||'#94a3b8')+'44';
+  const pct=Math.max(0,p.current_hp/p.max_hp);
+  const hpEl=document.getElementById('hp'+side);
+  hpEl.style.width=(pct*100)+'%';hpEl.className='hp-fill '+hpCls(pct);
+  document.getElementById('hn'+side).textContent=Math.max(0,p.current_hp)+'/'+p.max_hp;
+  const teamColor=side===1?'t1':'t2';
+  document.getElementById('bd'+side).innerHTML=team.map(tp=>{
+    const cls=tp===p?`bdot bdot-active-${teamColor}`:tp.current_hp>0?`bdot bdot-alive-${teamColor}`:'bdot bdot-dead';
+    return`<div class="${cls}" title="${tp.name}"></div>`;
+  }).join('');
+}
+
+function log(msg,cls='ll-normal'){
+  const el=document.getElementById('log');
+  const d=document.createElement('div');
+  d.className='ll '+cls;d.textContent=msg;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+function clearLog(){document.getElementById('log').innerHTML='';}
+
+async function showMove(move,side,tc){
+  const mt=document.getElementById('mt');
+  mt.textContent=move.toUpperCase();mt.style.borderColor=tc+'99';mt.style.color=tc;mt.classList.add('show');
+  const sp=document.getElementById('sp'+side);
+  const dur=(0.46/speedMult).toFixed(2);
+  sp.style.animation=`${side===1?'attackRight':'attackLeft'} ${dur}s ease`;
+  await s(470);
+  sp.style.animation='idleBob 2.4s ease-in-out infinite';
+  mt.classList.remove('show');
+}
+
+async function flashHit(defSide,tc,dmg,crit,sup){
+  const hf=document.getElementById('hf'),arena=document.getElementById('arena');
+  hf.style.animation='none';void hf.offsetWidth;
+  const fdur=(0.35/speedMult).toFixed(2);
+  hf.style.animation=`flashpop ${fdur}s ease`;
+  const sp=document.getElementById('sp'+defSide);
+  const sdur=(0.42/speedMult).toFixed(2);
+  sp.style.animation=`shakeHit ${sdur}s ease`;
+  spawnParticles(defSide,tc,crit?15:9);
+  spawnDmg(defSide,dmg,crit,sup);
+  await s(430);
+  // restore idle — check if still alive
+  const team=defSide===1?state.team1:state.team2;
+  const active=team.find(p=>p.current_hp>0);
+  const sp2=document.getElementById('sp'+defSide);
+  // only restore if the current sprite matches an alive pokemon
+  if(active&&sp2.getAttribute('data-pid')===''+active.id){
+    sp2.style.animation='idleBob 2.4s ease-in-out infinite';
+  }
+}
+
+function calcDmg(atk,def,at,dt){
+  const base=Math.floor((atk/def)*22+Math.random()*12);
+  const adv=(TYPE_ADV[at]||{})[dt]||1;
+  return{dmg:Math.max(8,Math.floor(base*adv)),adv};
+}
+function isCrit(){return Math.random()<0.12;}
+function pickMove(p){
+  const g=['Quick Attack','Tackle','Headbutt','Bite','Slash','Body Slam'];
+  return Math.random()<0.35?p.move:g[Math.floor(Math.random()*g.length)];
+}
+
+async function startBattle(){
+  const t1=getTeam('s1'),t2=getTeam('s2');
+  if(!t1.length||!t2.length){alert('Pick at least 1 Pokemon per team!');return;}
+  document.getElementById('btn-start').disabled=true;
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-auto').disabled=true;
+  document.getElementById('wb').classList.remove('show');
+  document.getElementById('idle-ph').classList.add('hidden');
+  clearLog();
+  stats={crits:0,supers:0,totalDmg:0};
+  state={team1:t1,team2:t2,turn:1,finished:false};
+  updateKPIs();
+  await showPokeballIntro(t1,t2);
+  updateFighter(1,t1[0],t1,true);
+  await s(130);
+  updateFighter(2,t2[0],t2,true);
+  await s(520);
+  log('=== BATTLE START ===','ll-turn');
+  log('Team 1: '+t1.map(p=>p.name).join(', '),'ll-t1');
+  log('Team 2: '+t2.map(p=>p.name).join(', '),'ll-t2');
+  document.getElementById('btn-next').disabled=false;
+  document.getElementById('btn-auto').disabled=false;
+}
+
+async function doTurn(){
+  if(!state||state.finished)return;
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-auto').disabled=true;
+  const a1=state.team1.find(p=>p.current_hp>0);
+  const a2=state.team2.find(p=>p.current_hp>0);
+  if(!a1||!a2){endBattle();return;}
+  log('--- TURN '+state.turn+' ---','ll-turn');
+
+  // P1 attacks P2
+  const mv1=pickMove(a1),tc1=TYPE_COLORS[a1.type]||'#fff';
+  await showMove(mv1,1,tc1);
+  const c1=isCrit(),{dmg:d1,adv:adv1}=calcDmg(a1.attack,a2.defense,a1.type,a2.type);
+  const fd1=d1+(c1?12:0);
+  if(c1)stats.crits++;if(adv1>1)stats.supers++;stats.totalDmg+=fd1;
+  a2.current_hp=Math.max(0,a2.current_hp-fd1);
+  await flashHit(2,tc1,fd1,c1,adv1>1);
+  updateFighter(2,a2,state.team2,false);
+  updateKPIs();
+  log(a1.name+' used '+mv1+'! '+(c1?'CRIT! ':adv1>1?'Super eff! ':'')+fd1+' dmg.'+(c1?' *':''),c1?'ll-crit':adv1>1?'ll-super':'ll-t1');
+  if(a2.current_hp<=0)log(a2.name+' fainted!','ll-faint');
+  await s(260);
+
+  const alive2=state.team2.filter(p=>p.current_hp>0);
+  const alive1=state.team1.filter(p=>p.current_hp>0);
+  if(!alive2.length){endBattle();return;}
+
+  const na2=alive2[0];
+  if(na2!==a2){log('Go, '+na2.name+'!','ll-t2');updateFighter(2,na2,state.team2,true);await s(460);}
+
+  const na1=alive1[0];
+  const mv2=pickMove(na2),tc2=TYPE_COLORS[na2.type]||'#fff';
+  await showMove(mv2,2,tc2);
+  const c2=isCrit(),{dmg:d2,adv:adv2}=calcDmg(na2.attack,na1.defense,na2.type,na1.type);
+  const fd2=d2+(c2?12:0);
+  if(c2)stats.crits++;if(adv2>1)stats.supers++;stats.totalDmg+=fd2;
+  na1.current_hp=Math.max(0,na1.current_hp-fd2);
+  await flashHit(1,tc2,fd2,c2,adv2>1);
+  updateFighter(1,na1,state.team1,false);
+  updateKPIs();
+  log(na2.name+' used '+mv2+'! '+(c2?'CRIT! ':adv2>1?'Super eff! ':'')+fd2+' dmg.'+(c2?' *':''),c2?'ll-crit':adv2>1?'ll-super':'ll-t2');
+  if(na1.current_hp<=0)log(na1.name+' fainted!','ll-faint');
+
+  const nA1=state.team1.find(p=>p.current_hp>0);
+  const nA2=state.team2.find(p=>p.current_hp>0);
+  if(nA1&&nA1!==na1){log('Go, '+nA1.name+'!','ll-t1');updateFighter(1,nA1,state.team1,true);await s(460);}
+  else if(nA1)updateFighter(1,nA1,state.team1,false);
+  if(nA2&&nA2!==na2){log('Go, '+nA2.name+'!','ll-t2');updateFighter(2,nA2,state.team2,true);await s(460);}
+  else if(nA2)updateFighter(2,nA2,state.team2,false);
+
+  state.turn++;updateKPIs();
+  const f1=state.team1.filter(p=>p.current_hp>0).length;
+  const f2=state.team2.filter(p=>p.current_hp>0).length;
+  if(!f1||!f2){endBattle();return;}
+  document.getElementById('btn-next').disabled=false;
+  document.getElementById('btn-auto').disabled=false;
+}
+
+async function endBattle(){
+  state.finished=true;
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
+  const f1=state.team1.filter(p=>p.current_hp>0);
+  const f2=state.team2.filter(p=>p.current_hp>0);
+  let msg,winSide;
+  if(f1.length&&!f2.length){msg='TEAM 1 WINS! '+f1.map(p=>p.name).join(', ')+' standing!';winSide=1;}
+  else if(f2.length&&!f1.length){msg='TEAM 2 WINS! '+f2.map(p=>p.name).join(', ')+' standing!';winSide=2;}
+  else{msg="IT'S A DRAW!";winSide=1;}
+  log(msg,'ll-win');updateKPIs();
+  const wc=winSide===1?'#ef4444':'#3b82f6';
+  for(let i=0;i<8;i++){setTimeout(()=>{spawnParticles(winSide,wc,10);spawnParticles(winSide,'#a78bfa',8);spawnParticles(winSide,'#eab308',6);},i*170/speedMult);}
+  await s(300);
+  await showWinBalls(winSide);
+  const wb=document.getElementById('wb');wb.textContent=msg;wb.classList.add('show');
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-auto').disabled=true;
+  setTimeout(()=>showEndScreen(winSide),1800);
+}
+
+function toggleAuto(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;document.getElementById('btn-auto').textContent='AUTO';return;}
+  document.getElementById('btn-auto').textContent='STOP';
+  const interval=()=>Math.max(500,2300/speedMult);
+  const run=async()=>{
+    if(!state||state.finished){clearInterval(autoTimer);autoTimer=null;document.getElementById('btn-auto').textContent='AUTO';return;}
+    document.getElementById('btn-next').disabled=true;document.getElementById('btn-auto').disabled=true;
+    await doTurn();
+    if(!state.finished){document.getElementById('btn-next').disabled=false;document.getElementById('btn-auto').disabled=false;}
+  };
+  autoTimer=setInterval(run,interval());
+}
+
+function resetAll(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;}
+  state=null;stats={crits:0,supers:0,totalDmg:0};
+  document.getElementById('btn-auto').textContent='AUTO';
+  ['btn-next','btn-auto'].forEach(id=>document.getElementById(id).disabled=true);
+  document.getElementById('btn-start').disabled=false;
+  document.getElementById('wb').classList.remove('show');
+  document.getElementById('pball-overlay').classList.remove('show');
+  document.getElementById('idle-ph').classList.remove('hidden');
+  ['sp1','sp2'].forEach(id=>{const el=document.getElementById(id);el.src='';el.style.animation='none';el.removeAttribute('data-pid');});
+  ['fn1','fn2','ft1','ft2','hn1','hn2'].forEach(id=>document.getElementById(id).textContent='');
+  ['hp1','hp2'].forEach(id=>{document.getElementById(id).style.width='100%';document.getElementById(id).className='hp-fill hp-hi';});
+  ['bd1','bd2'].forEach(id=>document.getElementById(id).innerHTML='');
+  clearLog();
+  document.getElementById('log').innerHTML='<div class="ll ll-normal">Select teams and press START BATTLE.</div>';
+  updateKPIs();
+}
+
+function closeIntro(){
+  const el=document.getElementById('intro-overlay');
+  el.style.transition='opacity 0.4s';el.style.opacity='0';
+  setTimeout(()=>el.style.display='none',420);
+}
+
+function closeEnd(){
+  const el=document.getElementById('end-overlay');
+  el.style.opacity='0';el.style.pointerEvents='none';
+}
+
+function showEndScreen(winSide){
+  const t1=state.team1, t2=state.team2;
+  // Headline
+  const draw=t1.filter(p=>p.current_hp>0).length===t2.filter(p=>p.current_hp>0).length;
+  const hl=document.getElementById('end-headline');
+  if(draw) hl.textContent="IT'S A DRAW!";
+  else hl.textContent=winSide===1?'🔴 TEAM 1 WINS!':'🔵 TEAM 2 WINS!';
+
+  // Team summaries
+  function teamHTML(team){
+    return team.map(p=>{
+      const pct=p.current_hp/p.max_hp;
+      const col=pct>0.5?'#22c55e':pct>0.25?'#eab308':'#ef4444';
+      const status=p.current_hp>0?`<span style="color:${col}">${p.current_hp}/${p.max_hp} HP</span>`:'<span style="color:#ef4444">FAINTED</span>';
+      return `${p.name} &nbsp;${status}`;
+    }).join('<br>');
+  }
+  document.getElementById('end-t1-pokemon').innerHTML=teamHTML(t1);
+  document.getElementById('end-t2-pokemon').innerHTML=teamHTML(t2);
+
+  // Highlights
+  document.getElementById('end-turns').textContent=state.turn||'?';
+  document.getElementById('end-dmg').textContent=stats.totalDmg||0;
+  document.getElementById('end-crits').textContent=stats.crits||0;
+  document.getElementById('end-supers').textContent=stats.supers||0;
+
+  // ── Recommend 3 next battles ──
+  // Score each possible 3v3 combo by excitement potential:
+  // high attack diff = explosive, type variety = strategic, legends = epic
+  const EPIC_TEAMS=[
+    {name:'Fire Trio',    ids:[6,78,136],  tag:'🔥 All-Fire Blitz',     why:'Pure aggression — fastest burn possible'},
+    {name:'Water Wall',   ids:[9,130,131], tag:'🌊 Tank &amp; Sweep',        why:'Blastoise defends, Gyarados closes'},
+    {name:'Psychic Elite',ids:[65,94,150], tag:'🔮 Mind Games',          why:'Alakazam + Gengar + Mewtwo = broken'},
+    {name:'Legends Only', ids:[144,145,146],tag:'⚡ Legendary Trio',     why:'Articuno vs Zapdos vs Moltres energy'},
+    {name:'Speed Demons', ids:[135,142,78], tag:'💨 All Speed ≥100',     why:'Every move goes first — blink and miss it'},
+    {name:'Glass Cannons',ids:[6,94,149],  tag:'💥 Huge ATK, Low DEF',  why:'Either team could wipe on turn 1'},
+    {name:'Tanks',        ids:[9,68,143],  tag:'🛡️ High HP + DEF',      why:'Long brutal war of attrition'},
+    {name:'Underdogs',    ids:[129,52,39], tag:'🃏 Chaos Run',           why:'Magikarp. Need we say more?'},
+  ];
+
+  // Pick 3 that differ from the current battle
+  const curIds=[...t1,...t2].map(p=>p.id);
+  const candidates=EPIC_TEAMS.filter(t=>!t.ids.some(id=>curIds.includes(id)));
+  // shuffle and take 3
+  const shuffled=candidates.sort(()=>Math.random()-0.5).slice(0,3);
+  // fallback if not enough
+  while(shuffled.length<3) shuffled.push(EPIC_TEAMS[shuffled.length]);
+
+  const recEl=document.getElementById('end-recs');
+  recEl.innerHTML=shuffled.map((t,i)=>{
+    const pokemon=t.ids.map(id=>POKEMON.find(p=>p.id===id)).filter(Boolean);
+    const names=pokemon.map(p=>p.name).join(' · ');
+    const badge=['🥇 TOP PICK','🥈 TRY THIS','🥉 WILDCARD'][i];
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 13px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:9px;cursor:pointer;transition:all 0.15s"
+      onmouseover="this.style.borderColor='rgba(167,139,250,0.35)';this.style.background='rgba(167,139,250,0.06)'"
+      onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.03)'"
+      onclick="loadRecommendedBattle(${JSON.stringify(t.ids)})">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#a78bfa;white-space:nowrap">${badge}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:#f0f0f8;margin-bottom:2px">${t.tag}</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#7070a0">${names}</div>
+      </div>
+      <div style="font-size:10px;color:#7070a0;font-style:italic;text-align:right;max-width:140px;line-height:1.4">${t.why}</div>
+    </div>`;
+  }).join('');
+
+  // Show
+  const ov=document.getElementById('end-overlay');
+  ov.style.opacity='1';ov.style.pointerEvents='all';
+}
+
+function loadRecommendedBattle(ids){
+  closeEnd();
+  resetAll();
+  // Load team 1 with the recommended IDs, team 2 random
+  const slots1=['s1a','s1b','s1c'];
+  ids.forEach((id,i)=>{
+    const sel=document.getElementById(slots1[i]);
+    if(sel){sel.value=id;previewSlot(slots1[i],'p1'+['a','b','c'][i]);}
+  });
+  // Random team 2 from remaining
+  const remaining=POKEMON.filter(p=>!ids.includes(p.id));
+  const rand=remaining.sort(()=>Math.random()-0.5).slice(0,3);
+  ['s2a','s2b','s2c'].forEach((sid,i)=>{
+    const sel=document.getElementById(sid);
+    if(sel&&rand[i]){sel.value=rand[i].id;previewSlot(sid,'p2'+['a','b','c'][i]);}
+  });
+}
+
+populateSelects();
+// Show intro on load
+setTimeout(()=>{const el=document.getElementById("intro-overlay");if(el)el.style.display="flex";},300);
+</script>
+
+<!-- INTRO POPUP -->
+<div id="intro-overlay" style="position:fixed;inset:0;background:rgba(5,5,15,0.96);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(14px)">
+<div style="background:linear-gradient(145deg,rgba(18,18,26,0.99),rgba(10,10,20,0.99));border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:2.6rem 3rem;max-width:680px;width:94%;box-shadow:0 0 80px rgba(99,102,241,0.15);animation:introIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both">
+  <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#7070a0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">Welcome to</div>
+  <div style="font-family:'Press Start 2P',monospace;font-size:14px;background:linear-gradient(90deg,#ef4444,#a78bfa,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.4rem;line-height:1.5">Pokémon Battle<br>Agentic AI Demo</div>
+
+  <!-- The story hook -->
+  <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.15);border-radius:12px;padding:14px 16px;margin-bottom:1.2rem">
+    <div style="font-size:13px;color:#c4b5fd;line-height:1.8;font-style:italic;margin-bottom:8px">"Two trainers walk into the arena. Neither is a human. Both are AI agents — reading the battlefield, picking moves, and adapting to each other in real time."</div>
+    <div style="font-size:12px;color:#7070a0">This is <strong style="color:#a78bfa">Agentic AI</strong> — not a chatbot answering questions, but an autonomous agent making sequential decisions to achieve a goal.</div>
+  </div>
+
+  <!-- What is Agentic AI -->
+  <div style="margin-bottom:1.2rem">
+    <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#7070a0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">What makes it "Agentic"?</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 6px">
+        <div style="font-size:18px;margin-bottom:4px">👁️</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#f87171;margin-bottom:4px">PERCEIVE</div>
+        <div style="font-size:10px;color:#7070a0">Reads HP, types, speed of all 6 Pokémon</div>
+      </div>
+      <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:8px;padding:10px 6px">
+        <div style="font-size:18px;margin-bottom:4px">🧠</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#fbbf24;margin-bottom:4px">REASON</div>
+        <div style="font-size:10px;color:#7070a0">Calculates type advantages &amp; damage</div>
+      </div>
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:10px 6px">
+        <div style="font-size:18px;margin-bottom:4px">⚡</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#a78bfa;margin-bottom:4px">ACT</div>
+        <div style="font-size:10px;color:#7070a0">Picks attack, switches Pokémon, adapts</div>
+      </div>
+      <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:10px 6px">
+        <div style="font-size:18px;margin-bottom:4px">🔁</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#4ade80;margin-bottom:4px">REPEAT</div>
+        <div style="font-size:10px;color:#7070a0">Loops until one team faints</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- vs traditional -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.4rem">
+    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:12px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#f87171;margin-bottom:6px">❌ Traditional AI</div>
+      <div style="font-size:11px;color:#7070a0;line-height:1.7">Follows a fixed script. Always attacks. No strategy. Same result every time.</div>
+    </div>
+    <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:10px;padding:12px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#a78bfa;margin-bottom:6px">✓ Agentic AI</div>
+      <div style="font-size:11px;color:#c4b5fd;line-height:1.7">Observes the battlefield. Exploits weaknesses. Every battle plays out differently.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:11px;color:#475569">Built by <strong style="color:#94a3b8">Saagar Devadiga</strong> · Data Engineer &amp; AI Developer</span>
+    <button onclick="closeIntro()" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(99,102,241,0.2));border:1px solid rgba(167,139,250,0.45);border-radius:8px;padding:10px 22px;font-family:'Press Start 2P',monospace;font-size:8px;color:#f0f0f8;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      ▶ ENTER ARENA
+    </button>
+  </div>
+</div>
+</div>
+<style>
+@keyframes introIn{from{transform:scale(0.88) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes endIn{from{transform:scale(0.88) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+</style>
+
+<!-- END SCREEN -->
+<div id="end-overlay" style="position:fixed;inset:0;background:rgba(5,5,15,0.94);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(14px);opacity:0;pointer-events:none;transition:opacity 0.5s;overflow-y:auto">
+<div style="background:linear-gradient(145deg,rgba(18,18,26,0.99),rgba(10,10,20,0.99));border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:2.4rem 2.8rem;max-width:700px;width:94%;box-shadow:0 0 80px rgba(99,102,241,0.15);margin:1rem auto;animation:endIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both">
+  <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#7070a0;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">Battle Over</div>
+  <div id="end-headline" style="font-family:'Press Start 2P',monospace;font-size:16px;background:linear-gradient(90deg,#ef4444,#a78bfa,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1.4rem;line-height:1.5">Team 1 Wins!</div>
+
+  <!-- Battle stats grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.3rem">
+    <div id="end-t1" style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#f87171;margin-bottom:8px">🔴 TEAM 1</div>
+      <div id="end-t1-pokemon" style="font-size:11px;color:#94a3b8;line-height:2;font-family:'Press Start 2P',monospace;font-size:7px"></div>
+      <div style="height:2px;border-radius:2px;background:linear-gradient(90deg,#ef4444,#f87171);margin-top:8px"></div>
+    </div>
+    <div id="end-t2" style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:14px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#60a5fa;margin-bottom:8px">🔵 TEAM 2</div>
+      <div id="end-t2-pokemon" style="font-size:11px;color:#94a3b8;line-height:2;font-family:'Press Start 2P',monospace;font-size:7px"></div>
+      <div style="height:2px;border-radius:2px;background:linear-gradient(90deg,#3b82f6,#60a5fa);margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- Battle highlights -->
+  <div style="background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.15);border-radius:10px;padding:12px 14px;margin-bottom:1.3rem">
+    <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#7070a0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">⚡ Battle Highlights</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center">
+      <div><div id="end-turns" style="font-family:'Press Start 2P',monospace;font-size:12px;color:#a78bfa">—</div><div style="font-size:10px;color:#7070a0;margin-top:3px">Turns</div></div>
+      <div><div id="end-dmg" style="font-family:'Press Start 2P',monospace;font-size:12px;color:#ef4444">—</div><div style="font-size:10px;color:#7070a0;margin-top:3px">Total DMG</div></div>
+      <div><div id="end-crits" style="font-family:'Press Start 2P',monospace;font-size:12px;color:#eab308">—</div><div style="font-size:10px;color:#7070a0;margin-top:3px">Crits</div></div>
+      <div><div id="end-supers" style="font-family:'Press Start 2P',monospace;font-size:12px;color:#22c55e">—</div><div style="font-size:10px;color:#7070a0;margin-top:3px">Super Eff.</div></div>
+    </div>
+  </div>
+
+  <!-- Watch Next recommendations -->
+  <div style="margin-bottom:1.4rem">
+    <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#7070a0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">🎮 Watch Next — Recommended Battles</div>
+    <div id="end-recs" style="display:flex;flex-direction:column;gap:7px"></div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button onclick="closeEnd()" style="background:transparent;border:1px solid rgba(167,139,250,0.3);border-radius:8px;padding:9px 18px;font-family:'Press Start 2P',monospace;font-size:7px;color:#7070a0;cursor:pointer">CLOSE</button>
+    <button onclick="closeEnd();resetAll();" style="background:linear-gradient(135deg,rgba(239,68,68,0.18),rgba(99,102,241,0.18));border:1px solid rgba(167,139,250,0.45);border-radius:8px;padding:9px 18px;font-family:'Press Start 2P',monospace;font-size:7px;color:#f0f0f8;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">▶ BATTLE AGAIN</button>
+  </div>
+</div>
+</div>
+</body>
+</html>
